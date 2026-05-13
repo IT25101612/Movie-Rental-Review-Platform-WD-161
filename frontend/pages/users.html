@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>User Management — Movie Rental Platform</title>
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="sidebar-logo"><div class="logo-icon">🎬</div><div class="logo-text">Movie <span>Rental</span><br>& Review Platform</div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <a href="../index.html" class="nav-item"><span class="nav-icon">🏠</span> Dashboard</a>
+      <div class="nav-section-label">Management</div>
+      <a href="users.html" class="nav-item active"><span class="nav-icon">👥</span> Users</a>
+      <a href="movies.html" class="nav-item"><span class="nav-icon">🎥</span> Movies</a>
+      <a href="rentals.html" class="nav-item"><span class="nav-icon">📋</span> Rentals</a>
+      <a href="reviews.html" class="nav-item"><span class="nav-icon">⭐</span> Reviews</a>
+      <a href="payments.html" class="nav-item"><span class="nav-icon">💳</span> Payments</a>
+      <a href="watchlist.html" class="nav-item"><span class="nav-icon">🔖</span> Watchlist</a>
+    </nav>
+    <div class="sidebar-footer">© 2024 Movie Rental Platform</div>
+  </aside>
+  <div class="main-content">
+    <header class="top-header">
+      <div class="page-title-section"><h1>User Management</h1><p>Total: <strong id="userCount">—</strong> users</p></div>
+      <div class="header-actions">
+        <div class="search-box"><span class="search-icon">🔍</span><input type="text" id="userSearch" placeholder="Search users…" /></div>
+        <button class="btn btn-primary" onclick="openAddUser()">➕ Add User</button>
+        <div id="headerUser"></div>
+      </div>
+    </header>
+    <div class="page-content">
+      <div class="panel">
+        <div class="panel-header"><div><div class="panel-title">All Users</div><div class="panel-subtitle">Manage platform users and roles</div></div></div>
+        <div class="table-wrapper">
+          <table><thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Role</th><th>Joined</th><th>Actions</th></tr></thead>
+          <tbody id="usersTableBody"><tr class="loading-row"><td colspan="7"><span class="spinner"></span></td></tr></tbody></table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-overlay" id="userModal">
+    <div class="modal">
+      <div class="modal-header"><div class="modal-title" id="userModalTitle">Add User</div><button class="modal-close" onclick="closeModal('userModal')">✕</button></div>
+      <div class="modal-body">
+        <form id="userForm" onsubmit="event.preventDefault();saveUser();">
+          <div class="form-group"><label class="form-label">Full Name *</label><input type="text" name="fullName" class="form-control" required /></div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Email *</label><input type="email" name="email" class="form-control" required /></div>
+            <div class="form-group"><label class="form-label">Phone</label><input type="text" name="phone" class="form-control" /></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Password *</label><input type="password" name="password" class="form-control" /></div>
+            <div class="form-group"><label class="form-label">Role</label><select name="role" class="form-control"><option value="CUSTOMER">Customer</option><option value="ADMIN">Admin</option></select></div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('userModal')">Cancel</button><button class="btn btn-primary" onclick="saveUser()">💾 Save</button></div>
+    </div>
+  </div>
+  <script src="../js/auth.js"></script>
+  <script src="../js/app.js"></script>
+  <script src="../js/users.js"></script>
+  <script>requireAuth('ADMIN'); renderUserInfo('headerUser');</script>
+</body>
+</html>

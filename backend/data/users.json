@@ -1,0 +1,19 @@
+[ {
+  "id" : 1,
+  "fullName" : "System Admin",
+  "email" : "admin@movierental.com",
+  "phone" : "0000000000",
+  "password" : "$2a$10$H3iLPrwPpiUpNRHClN3zW.Z9T6JIK7HSqCNpsVfExW3eaz0nF0jXe",
+  "role" : "ADMIN",
+  "status" : "ACTIVE",
+  "createdAt" : "2026-05-06T22:06:14.358808"
+}, {
+  "id" : 2,
+  "fullName" : "user",
+  "email" : "user@gmail.com",
+  "phone" : null,
+  "password" : "$2a$10$cqWAWIvuId5xa3Uq4uykXeDlPxNVjpVwEkFG63HCyrqboC0wmWfbG",
+  "role" : "CUSTOMER",
+  "status" : "ACTIVE",
+  "createdAt" : "2026-05-12T02:01:06.8078981"
+} ]
