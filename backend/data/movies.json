@@ -1,0 +1,21 @@
+[ {
+  "id" : 1,
+  "title" : "Spider Man",
+  "genre" : "Action/Super Hero",
+  "description" : "The Spider Man (2002)\nAction/Sci-fi movie\nMarvel superhero",
+  "releaseYear" : 2002,
+  "rentalPrice" : 5,
+  "available" : true,
+  "posterUrl" : "https://share.google/CsmKUakPIFO4qXt7M",
+  "createdAt" : "2026-05-16T12:16:40.3379758"
+}, {
+  "id" : 2,
+  "title" : "The boys",
+  "genre" : "Action/Super Hero",
+  "description" : "The boys Series (2019 - 2026)\nR-rated series\n\nfor Superhero lovers.",
+  "releaseYear" : 2019,
+  "rentalPrice" : 5,
+  "available" : true,
+  "posterUrl" : "https://share.google/CsmKUakPIFO4qXt7M",
+  "createdAt" : "2026-05-16T12:18:10.2316166"
+} ]
