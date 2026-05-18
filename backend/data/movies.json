@@ -1,0 +1,21 @@
+[ {
+  "id" : 1,
+  "title" : "The Social Network",
+  "genre" : "Drama/History",
+  "description" : "The Social Network is a critically acclaimed 2010 biographical drama film directed by David Fincher and written by Aaron Sorkin. The film chronicles the turbulent founding of the social networking website Facebook and the subsequent legal battles that followed its meteoric rise",
+  "releaseYear" : 2010,
+  "rentalPrice" : 9.99,
+  "available" : true,
+  "posterUrl" : "https://ogden_images.s3.amazonaws.com/www.lockhaven.com/images/2021/05/19143504/social-network-592x840.jpg",
+  "createdAt" : "2026-05-18T13:47:24.1116908"
+}, {
+  "id" : 2,
+  "title" : "social network",
+  "genre" : "history",
+  "description" : "ddd",
+  "releaseYear" : 2010,
+  "rentalPrice" : 9.99,
+  "available" : true,
+  "posterUrl" : "https://www.lockhaven.com/news/arts-culture-scene/2021/05/the-social-network-and-its-consequences/",
+  "createdAt" : "2026-05-18T14:00:29.3610039"
+} ]

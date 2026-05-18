@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Dashboard — Movie Rental Platform</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .user-info{display:flex;align-items:center;gap:10px}
+    .user-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#2ecc71,#27ae60);
+                 display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff}
+    .user-meta{display:flex;flex-direction:column}
+    .user-name{font-size:13px;font-weight:600;color:var(--text-primary)}
+    .user-role{font-size:11px;color:#2ecc71;text-transform:uppercase;letter-spacing:.5px}
+    .welcome-banner{background:linear-gradient(135deg,#0d2818,#14401f);border:1px solid rgba(46,204,113,.2);
+                    border-radius:var(--radius);padding:28px 32px;margin-bottom:28px;display:flex;
+                    align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;position:relative;overflow:hidden}
+    .welcome-banner::before{content:'🎬';position:absolute;right:24px;top:50%;transform:translateY(-50%);
+                             font-size:80px;opacity:.07;pointer-events:none}
+    .welcome-title{font-size:22px;font-weight:800;margin-bottom:4px}
+    .welcome-sub{font-size:13px;color:var(--text-secondary)}
+    .welcome-badge{background:rgba(46,204,113,.15);border:1px solid rgba(46,204,113,.4);
+                   color:#2ecc71;padding:6px 16px;border-radius:20px;font-size:12px;font-weight:600}
+    .movie-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;padding:24px}
+    .movie-card{background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius-sm);
+                overflow:hidden;transition:var(--transition);cursor:pointer;position:relative}
+    .movie-card:hover{border-color:var(--accent);transform:translateY(-3px);box-shadow:var(--shadow)}
+    .movie-poster{height:120px;background:linear-gradient(135deg,var(--bg-card),var(--bg-hover));
+                  display:flex;align-items:center;justify-content:center;font-size:40px}
+    .movie-info{padding:12px}
+    .movie-title{font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:4px;
+                 white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .movie-meta{font-size:11px;color:var(--text-muted);display:flex;justify-content:space-between}
+    .movie-price{color:var(--accent-light);font-weight:600}
+    .movie-actions{margin-top:12px;text-align:right}
+    .movie-card .rent-badge{position:absolute;top:8px;right:8px;background:var(--accent);color:#fff;font-size:10px;padding:3px 8px;border-radius:10px;font-weight:600;opacity:0;transition:var(--transition)}
+    .rental-item{display:flex;align-items:center;gap:14px;padding:14px 18px;border-bottom:1px solid var(--border)}
+    .rental-item:last-child{border-bottom:none}
+    .rental-icon{font-size:24px;width:40px;text-align:center}
+    .rental-title{font-size:14px;font-weight:600;margin-bottom:3px}
+    .rental-meta{font-size:12px;color:var(--text-muted)}
+    .rental-status{margin-left:auto}
+    .empty-state{padding:48px;text-align:center;color:var(--text-muted)}
+    .empty-state-icon{font-size:48px;margin-bottom:12px}
+    .empty-state-text{font-size:14px}
+    .tabs{display:flex;gap:2px;padding:16px 24px 0;border-bottom:1px solid var(--border)}
+    .tab{padding:10px 18px;font-size:13px;font-weight:500;cursor:pointer;border-radius:var(--radius-sm) var(--radius-sm) 0 0;
+         color:var(--text-muted);border:none;background:none;font-family:inherit;transition:var(--transition)}
+    .tab.active{background:var(--bg-hover);color:var(--text-primary);border-bottom:2px solid var(--accent)}
+    .tab-pane{display:none}.tab-pane.active{display:block}
+
+    /* ── Payment-specific styles ── */
+    .payment-table-wrap{overflow-x:auto}
+    .payment-table{width:100%;border-collapse:collapse}
+    .payment-table thead{background:var(--bg-secondary)}
+    .payment-table th{text-align:left;padding:14px 18px;font-size:11px;text-transform:uppercase;letter-spacing:1px;
+                       color:var(--text-muted);font-weight:600;white-space:nowrap}
+    .payment-table td{padding:14px 18px;font-size:13px;border-bottom:1px solid var(--border);color:var(--text-secondary)}
+    .payment-table tr:hover td{background:var(--bg-hover);color:var(--text-primary)}
+    .payment-table tr:last-child td{border-bottom:none}
+
+    .payment-method-icon{display:inline-flex;align-items:center;gap:6px;font-size:13px}
+    .payment-method-icon .pm-icon{font-size:18px;width:24px;text-align:center}
+
+    .payment-amount{font-weight:700;color:var(--accent-light);font-size:14px}
+    .payment-txn{font-family:'Courier New',monospace;font-size:11px;color:var(--text-muted);
+                 background:var(--bg-secondary);padding:3px 8px;border-radius:4px;letter-spacing:.5px}
+
+    .payment-summary-bar{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;
+                          border-bottom:1px solid var(--border);flex-wrap:wrap;gap:12px}
+    .payment-summary-stat{display:flex;align-items:center;gap:8px}
+    .payment-summary-stat .pss-icon{font-size:20px}
+    .payment-summary-stat .pss-label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px}
+    .payment-summary-stat .pss-value{font-size:16px;font-weight:700;color:var(--text-primary)}
+
+    .payment-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .payment-detail-item{padding:14px;background:var(--bg-secondary);border-radius:var(--radius-sm);border:1px solid var(--border)}
+    .payment-detail-item .pd-label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:6px;font-weight:600}
+    .payment-detail-item .pd-value{font-size:15px;font-weight:600;color:var(--text-primary)}
+    .payment-detail-item.full-width{grid-column:1/-1}
+
+    .stat-card-money .stat-value{font-size:28px}
+    .stat-card-money .stat-currency{font-size:16px;opacity:.7}
+
+    /* ── Rent modal styles ── */
+    .rent-movie-header{display:flex;align-items:center;gap:16px;margin-bottom:24px;padding-bottom:18px;border-bottom:1px solid var(--border)}
+    .rent-movie-poster{width:80px;height:100px;border-radius:var(--radius-sm);background:linear-gradient(135deg,var(--bg-secondary),var(--bg-hover));display:flex;align-items:center;justify-content:center;font-size:36px;flex-shrink:0;overflow:hidden}
+    .rent-movie-poster img{width:100%;height:100%;object-fit:cover}
+    .rent-movie-details h4{font-size:18px;font-weight:700;margin-bottom:4px}
+    .rent-movie-details .rmd-genre{font-size:12px;color:var(--text-muted);margin-bottom:6px}
+    .rent-movie-details .rmd-price{font-size:16px;font-weight:700;color:var(--accent-light)}
+    .rent-total-bar{background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px;margin-top:20px;display:flex;align-items:center;justify-content:space-between}
+    .rent-total-label{font-size:13px;color:var(--text-secondary)}
+    .rent-total-amount{font-size:22px;font-weight:800;color:var(--accent-light)}
+    .rent-success{text-align:center;padding:20px 0}
+    .rent-success .rs-icon{font-size:56px;margin-bottom:12px}
+    .rent-success .rs-title{font-size:20px;font-weight:700;margin-bottom:6px;color:var(--success)}
+    .rent-success .rs-sub{font-size:13px;color:var(--text-secondary);margin-bottom:20px}
+    .rent-receipt{background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px;text-align:left}
+    .rent-receipt .rr-row{display:flex;justify-content:space-between;padding:6px 0;font-size:13px}
+    .rent-receipt .rr-row .rr-label{color:var(--text-muted)}
+    .rent-receipt .rr-row .rr-value{color:var(--text-primary);font-weight:600}
+    .movie-card .rent-badge{position:absolute;top:8px;right:8px;background:var(--accent);color:#fff;font-size:10px;padding:3px 8px;border-radius:10px;font-weight:600;opacity:0;transition:var(--transition)}
+    .movie-card:hover .rent-badge{opacity:1}
+    .movie-card{position:relative}
+
+    @media(max-width:600px){
+      .payment-detail-grid{grid-template-columns:1fr}
+      .payment-summary-bar{flex-direction:column;align-items:flex-start}
+      .rent-movie-header{flex-direction:column;text-align:center}
+    }
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">🎬</div>
+      <div class="logo-text">Movie <span>Rental</span><br>&amp; Review Platform</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <a href="customer-dashboard.html" class="nav-item active"><span class="nav-icon">🏠</span> My Dashboard</a>
+      <div class="nav-section-label">Browse</div>
+      <a href="#" class="nav-item" onclick="switchTab('movies');return false"><span class="nav-icon">🎥</span> Browse Movies</a>
+      <a href="#" class="nav-item" onclick="switchTab('rentals');return false"><span class="nav-icon">📋</span> My Rentals</a>
+      <a href="#" class="nav-item" onclick="switchTab('payments');return false"><span class="nav-icon">💳</span> My Payments</a>
+      <a href="#" class="nav-item" onclick="switchTab('reviews');return false"><span class="nav-icon">⭐</span> My Reviews</a>
+      <a href="#" class="nav-item" onclick="switchTab('watchlist');return false"><span class="nav-icon">🔖</span> My Watchlist</a>
+    </nav>
+    <div class="sidebar-footer">© 2024 Movie Rental Platform</div>
+  </aside>
+
+  <div class="main-content">
+    <header class="top-header">
+      <div class="page-title-section">
+        <h1>My Dashboard</h1>
+        <p>Browse movies, manage rentals and track payments</p>
+      </div>
+      <div class="header-actions" id="headerUser"></div>
+    </header>
+
+    <div class="page-content">
+
+      <!-- Welcome -->
+      <div class="welcome-banner">
+        <div>
+          <div class="welcome-title" id="welcomeTitle">Welcome!</div>
+          <div class="welcome-sub">Discover and rent your favourite movies.</div>
+        </div>
+        <span class="welcome-badge">CUSTOMER</span>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));margin-bottom:28px">
+        <div class="stat-card"><div class="stat-icon">🎥</div><div class="stat-value" id="statAvailable">—</div><div class="stat-label">Available Movies</div></div>
+        <div class="stat-card"><div class="stat-icon">📋</div><div class="stat-value" id="statMyRentals">—</div><div class="stat-label">My Rentals</div></div>
+        <div class="stat-card"><div class="stat-icon">⏳</div><div class="stat-value" id="statActive">—</div><div class="stat-label">Active Rentals</div></div>
+        <div class="stat-card"><div class="stat-icon">🔖</div><div class="stat-value" id="statWatchlist">—</div><div class="stat-label">Watchlist Items</div></div>
+        <div class="stat-card"><div class="stat-icon">⭐</div><div class="stat-value" id="statReviews">—</div><div class="stat-label">My Reviews</div></div>
+        <div class="stat-card stat-card-money"><div class="stat-icon">💰</div><div class="stat-value" id="statTotalSpent">—</div><div class="stat-label">Total Spent</div></div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="panel">
+        <div class="tabs">
+          <button class="tab active" id="tabMovies"   onclick="switchTab('movies')">🎥 Browse Movies</button>
+          <button class="tab"        id="tabRentals"  onclick="switchTab('rentals')">📋 My Rentals</button>
+          <button class="tab"        id="tabPayments" onclick="switchTab('payments')">💳 My Payments</button>
+          <button class="tab"        id="tabReviews"  onclick="switchTab('reviews')">⭐ My Reviews</button>
+          <button class="tab"        id="tabWatchlist" onclick="switchTab('watchlist')">🔖 Watchlist</button>
+        </div>
+
+        <div class="tab-pane active" id="paneMovies">
+          <div class="movie-grid" id="movieGrid">
+            <div style="padding:40px;text-align:center;color:var(--text-muted);grid-column:1/-1">
+              <span class="spinner"></span> Loading movies…
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-pane" id="paneRentals">
+          <div id="rentalList">
+            <div style="padding:40px;text-align:center;color:var(--text-muted)">
+              <span class="spinner"></span> Loading rentals…
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-pane" id="panePayments">
+          <!-- Summary bar -->
+          <div class="payment-summary-bar" id="paymentSummaryBar">
+            <div class="payment-summary-stat">
+              <span class="pss-icon">💳</span>
+              <div>
+                <div class="pss-label">Total Payments</div>
+                <div class="pss-value" id="paymentTotalCount">—</div>
+              </div>
+            </div>
+            <div class="payment-summary-stat">
+              <span class="pss-icon">✅</span>
+              <div>
+                <div class="pss-label">Completed</div>
+                <div class="pss-value" id="paymentCompletedCount">—</div>
+              </div>
+            </div>
+            <div class="payment-summary-stat">
+              <span class="pss-icon">⏳</span>
+              <div>
+                <div class="pss-label">Pending</div>
+                <div class="pss-value" id="paymentPendingCount">—</div>
+              </div>
+            </div>
+            <div class="payment-summary-stat">
+              <span class="pss-icon">💰</span>
+              <div>
+                <div class="pss-label">Total Spent</div>
+                <div class="pss-value" id="paymentTotalSpent">$0.00</div>
+              </div>
+            </div>
+          </div>
+          <!-- Payment table -->
+          <div class="payment-table-wrap">
+            <table class="payment-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Movie</th>
+                  <th>Amount</th>
+                  <th>Method</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                  <th>Transaction ID</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="paymentTableBody">
+                <tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-muted)"><span class="spinner"></span> Loading payments…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="tab-pane" id="paneReviews">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px">
+            <div>
+              <h2 style="margin:0;font-size:18px;color:var(--text-primary)">My Reviews</h2>
+              <p style="margin:6px 0 0;color:var(--text-muted);font-size:13px">Write reviews only for movies you have rented.</p>
+            </div>
+            <button class="btn btn-primary" onclick="openReviewModal()">➕ Write Review</button>
+          </div>
+          <div class="table-wrapper">
+            <table class="payment-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Movie</th>
+                  <th>Rating</th>
+                  <th>Comment</th>
+                  <th>Date</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="reviewTableBody">
+                <tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted)"><span class="spinner"></span> Loading reviews…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="tab-pane" id="paneWatchlist">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px">
+            <div>
+              <h2 style="margin:0;font-size:18px;color:var(--text-primary)">My Watchlist</h2>
+              <p style="margin:6px 0 0;color:var(--text-muted);font-size:13px">Saved movies you want to watch later.</p>
+            </div>
+            <button class="btn btn-primary" onclick="switchTab('movies');">➕ Browse Movies</button>
+          </div>
+          <div class="table-wrapper">
+            <table class="payment-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Movie</th>
+                  <th>Status</th>
+                  <th>Added Date</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="watchlistTableBody">
+                <tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-muted)"><span class="spinner"></span> Loading watchlist…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Review Modal -->
+  <div class="modal-overlay" id="reviewModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title" id="reviewModalTitle">Write Review</h3>
+        <button class="modal-close" onclick="closeModal('reviewModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="customerReviewForm">
+          <div class="form-group">
+            <label class="form-label">Movie *</label>
+            <select id="reviewMovieSelect" name="movieId" class="form-control"></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Rating *</label>
+            <select name="rating" class="form-control">
+              <option value="5">⭐⭐⭐⭐⭐</option>
+              <option value="4">⭐⭐⭐⭐</option>
+              <option value="3">⭐⭐⭐</option>
+              <option value="2">⭐⭐</option>
+              <option value="1">⭐</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Comment</label>
+            <textarea name="comment" class="form-control" rows="4" placeholder="Write your movie review..."></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('reviewModal')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveCustomerReview()">💾 Save Review</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rent Movie Modal -->
+  <div class="modal-overlay" id="rentModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title" id="rentModalTitle">🎬 Rent Movie</h3>
+        <button class="modal-close" onclick="closeModal('rentModal')">&times;</button>
+      </div>
+      <div class="modal-body" id="rentModalBody"></div>
+      <div class="modal-footer" id="rentModalFooter">
+        <button class="btn btn-secondary" onclick="closeModal('rentModal')">Cancel</button>
+        <button class="btn btn-primary" id="rentConfirmBtn" onclick="confirmRent()">💳 Pay & Rent</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Payment Detail Modal -->
+  <div class="modal-overlay" id="paymentDetailModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">💳 Payment Details</h3>
+        <button class="modal-close" onclick="closeModal('paymentDetailModal')">&times;</button>
+      </div>
+      <div class="modal-body" id="paymentDetailBody"></div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('paymentDetailModal')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/auth.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    requireAuth('CUSTOMER');
+    const user = getCurrentUser();
+    renderUserInfo('headerUser');
+    if (user) document.getElementById('welcomeTitle').textContent = `Welcome, ${user.name}!`;
+
+    function switchTab(name) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+      document.getElementById('tab' + name.charAt(0).toUpperCase() + name.slice(1)).classList.add('active');
+      document.getElementById('pane' + name.charAt(0).toUpperCase() + name.slice(1)).classList.add('active');
+    }
+
+    async function loadDashboard() {
+      try {
+        const data = await apiFetch('/customer/dashboard');
+        if (!data) return;
+        animateCounter(document.getElementById('statAvailable'), data.availableMovies || 0);
+        animateCounter(document.getElementById('statMyRentals'), data.myRentals || 0);
+        animateCounter(document.getElementById('statActive'),    data.activeRentals || 0);
+        // Total spent - display as currency
+        const totalSpent = parseFloat(data.totalSpent || 0);
+        document.getElementById('statTotalSpent').innerHTML = `<span class="stat-currency">$</span>${totalSpent.toFixed(2)}`;
+      } catch (_) {}
+    }
+
+    async function loadMovies() {
+      const grid = document.getElementById('movieGrid');
+      try {
+        const movies = await apiFetch('/customer/movies');
+        if (!movies || movies.length === 0) {
+          grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="empty-state-icon">🎬</div><div class="empty-state-text">No movies available right now.</div></div>';
+          return;
+        }
+        window._movieList = movies;
+        grid.innerHTML = movies.map((m, idx) => `
+          <div class="movie-card" onclick="openRentModal(${idx})">
+            <span class="rent-badge">RENT NOW</span>
+            <div class="movie-poster">${m.posterUrl ? `<img src="${m.posterUrl}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.innerHTML='🎬'"/>` : '🎬'}</div>
+            <div class="movie-info">
+              <div class="movie-title" title="${m.title}">${m.title}</div>
+              <div class="movie-meta">
+                <span>${m.genre || 'Unknown'}</span>
+                <span class="movie-price">$${parseFloat(m.rentalPrice).toFixed(2)}/day</span>
+              </div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:4px">${m.releaseYear || ''}</div>
+              <div class="movie-actions">
+                <button class="btn btn-sm btn-secondary" onclick="event.stopPropagation(); addToWatchlist(${m.id})">🔖 Add to Watchlist</button>
+              </div>
+            </div>
+          </div>`).join('');
+      } catch (_) {
+        grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="empty-state-icon">⚠️</div><div class="empty-state-text">Could not load movies.</div></div>';
+      }
+    }
+
+    async function loadRentals() {
+      const list = document.getElementById('rentalList');
+      try {
+        const rentals = await apiFetch('/customer/my-rentals');
+        if (!rentals || rentals.length === 0) {
+          list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-text">You have no rentals yet.</div></div>';
+          return;
+        }
+        const statusColor = { ACTIVE: 'badge-success', RETURNED: 'badge-info', OVERDUE: 'badge-danger' };
+        list.innerHTML = rentals.map(r => `
+          <div class="rental-item">
+            <div class="rental-icon">🎬</div>
+            <div>
+              <div class="rental-title">${r.movie?.title || 'Movie'}</div>
+              <div class="rental-meta">Rented: ${r.rentalDate || '—'} &nbsp;|&nbsp; Return: ${r.returnDate || 'Not returned'}</div>
+            </div>
+            <div class="rental-status">
+              <span class="badge ${statusColor[r.status] || 'badge-info'}">${r.status}</span>
+            </div>
+          </div>`).join('');
+      } catch (_) {
+        list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⚠️</div><div class="empty-state-text">Could not load rentals.</div></div>';
+      }
+    }
+
+    /* ── Rent Flow ── */
+    let _selectedMovie = null;
+
+    function openRentModal(idx) {
+      const m = window._movieList[idx];
+      if (!m) return;
+      _selectedMovie = m;
+      const price = parseFloat(m.rentalPrice);
+      document.getElementById('rentModalTitle').textContent = '🎬 Rent Movie';
+      document.getElementById('rentConfirmBtn').style.display = '';
+      document.getElementById('rentConfirmBtn').disabled = false;
+      document.getElementById('rentConfirmBtn').textContent = '💳 Pay & Rent';
+      document.getElementById('rentModalBody').innerHTML = `
+        <div class="rent-movie-header">
+          <div class="rent-movie-poster">${m.posterUrl ? `<img src="${m.posterUrl}" onerror="this.parentElement.innerHTML='🎬'"/>` : '🎬'}</div>
+          <div class="rent-movie-details">
+            <h4>${m.title}</h4>
+            <div class="rmd-genre">${m.genre || 'Unknown'} ${m.releaseYear ? '• ' + m.releaseYear : ''}</div>
+            <div class="rmd-price">$${price.toFixed(2)} / day</div>
+          </div>
+        </div>
+        ${m.description ? `<p style="font-size:13px;color:var(--text-secondary);margin-bottom:18px">${m.description}</p>` : ''}
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Rental Days</label>
+            <select class="form-control" id="rentDays" onchange="updateRentTotal()">
+              <option value="1">1 Day</option>
+              <option value="3" selected>3 Days</option>
+              <option value="5">5 Days</option>
+              <option value="7">7 Days (1 Week)</option>
+              <option value="14">14 Days (2 Weeks)</option>
+              <option value="30">30 Days (1 Month)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Payment Method</label>
+            <select class="form-control" id="rentPayMethod">
+              <option value="CREDIT_CARD">💳 Credit Card</option>
+              <option value="DEBIT_CARD">🏦 Debit Card</option>
+              <option value="PAYPAL">🅿️ PayPal</option>
+              <option value="UPI">📱 UPI</option>
+              <option value="CASH">💵 Cash</option>
+            </select>
+          </div>
+        </div>
+        <div class="rent-total-bar">
+          <span class="rent-total-label">Total Amount</span>
+          <span class="rent-total-amount" id="rentTotalAmount">$${(price * 3).toFixed(2)}</span>
+        </div>`;
+      openModal('rentModal');
+    }
+
+    function updateRentTotal() {
+      if (!_selectedMovie) return;
+      const days = parseInt(document.getElementById('rentDays').value);
+      const total = parseFloat(_selectedMovie.rentalPrice) * days;
+      document.getElementById('rentTotalAmount').textContent = '$' + total.toFixed(2);
+    }
+
+    async function confirmRent() {
+      if (!_selectedMovie) return;
+      const btn = document.getElementById('rentConfirmBtn');
+      btn.disabled = true;
+      btn.textContent = '⏳ Processing…';
+      const days = parseInt(document.getElementById('rentDays').value);
+      const method = document.getElementById('rentPayMethod').value;
+      try {
+        const result = await apiFetch(`/customer/rent/${_selectedMovie.id}`, {
+          method: 'POST',
+          body: JSON.stringify({ rentalDays: days, paymentMethod: method })
+        });
+        if (!result || result.error) { showToast(result?.error || 'Rental failed', 'error'); btn.disabled = false; btn.textContent = '💳 Pay & Rent'; return; }
+        // Show success receipt
+        document.getElementById('rentModalTitle').textContent = '✅ Rental Confirmed';
+        btn.style.display = 'none';
+        const p = result.payment;
+        document.getElementById('rentModalBody').innerHTML = `
+          <div class="rent-success">
+            <div class="rs-icon">🎉</div>
+            <div class="rs-title">Payment Successful!</div>
+            <div class="rs-sub">Your movie has been rented and payment has been processed.</div>
+            <div class="rent-receipt">
+              <div class="rr-row"><span class="rr-label">Movie</span><span class="rr-value">${_selectedMovie.title}</span></div>
+              <div class="rr-row"><span class="rr-label">Rental Days</span><span class="rr-value">${days} days</span></div>
+              <div class="rr-row"><span class="rr-label">Amount Paid</span><span class="rr-value" style="color:var(--accent-light)">${formatMoney(p?.amount)}</span></div>
+              <div class="rr-row"><span class="rr-label">Method</span><span class="rr-value">${(method||'').replace(/_/g,' ')}</span></div>
+              <div class="rr-row"><span class="rr-label">Transaction ID</span><span class="rr-value" style="font-family:monospace;font-size:11px">${p?.transactionId || '—'}</span></div>
+              <div class="rr-row"><span class="rr-label">Status</span><span class="rr-value" style="color:var(--success)">COMPLETED</span></div>
+            </div>
+          </div>`;
+        showToast('Movie rented successfully!');
+        loadDashboard(); loadMovies(); loadRentals(); loadPayments(); loadReviewMovies();
+      } catch (e) { btn.disabled = false; btn.textContent = '💳 Pay & Rent'; }
+    }
+
+    /* ── Payment Management ── */
+    const methodIcons = {
+      CREDIT_CARD: '💳', DEBIT_CARD: '🏦', PAYPAL: '🅿️', CASH: '💵', UPI: '📱'
+    };
+
+    function getMethodLabel(method) {
+      return (method || '').replace(/_/g, ' ');
+    }
+
+    async function loadPayments() {
+      const tbody = document.getElementById('paymentTableBody');
+      try {
+        const payments = await apiFetch('/customer/my-payments');
+        if (!payments || payments.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:48px;color:var(--text-muted)"><div style="font-size:48px;margin-bottom:12px">💳</div><div style="font-size:14px">No payments found. Rent a movie to see your payment history here.</div></td></tr>';
+          document.getElementById('paymentTotalCount').textContent = '0';
+          document.getElementById('paymentCompletedCount').textContent = '0';
+          document.getElementById('paymentPendingCount').textContent = '0';
+          document.getElementById('paymentTotalSpent').textContent = '$0.00';
+          return;
+        }
+
+        // Update summary stats
+        const completed = payments.filter(p => p.paymentStatus === 'COMPLETED');
+        const pending = payments.filter(p => p.paymentStatus === 'PENDING');
+        const totalSpent = completed.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
+
+        document.getElementById('paymentTotalCount').textContent = payments.length;
+        document.getElementById('paymentCompletedCount').textContent = completed.length;
+        document.getElementById('paymentPendingCount').textContent = pending.length;
+        document.getElementById('paymentTotalSpent').textContent = formatMoney(totalSpent);
+
+        tbody.innerHTML = payments.map((p, i) => `
+          <tr>
+            <td>${i + 1}</td>
+            <td style="font-weight:600;color:var(--text-primary)">${p.rental?.movie?.title || 'Movie'}</td>
+            <td><span class="payment-amount">${formatMoney(p.amount)}</span></td>
+            <td>
+              <span class="payment-method-icon">
+                <span class="pm-icon">${methodIcons[p.paymentMethod] || '💳'}</span>
+                ${getMethodLabel(p.paymentMethod)}
+              </span>
+            </td>
+            <td>${statusBadge(p.paymentStatus)}</td>
+            <td>${formatDate(p.paymentDate)}</td>
+            <td>${p.transactionId ? `<span class="payment-txn">${p.transactionId}</span>` : '<span style="color:var(--text-muted)">—</span>'}</td>
+            <td>
+              <button class="btn btn-sm btn-secondary" onclick="viewPaymentDetail(${i})" title="View Details">👁️</button>
+            </td>
+          </tr>`).join('');
+
+        // Store payments for detail view
+        window._customerPayments = payments;
+      } catch (_) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-muted)"><div style="font-size:48px;margin-bottom:12px">⚠️</div>Could not load payments.</td></tr>';
+      }
+    }
+
+    function viewPaymentDetail(index) {
+      const p = window._customerPayments[index];
+      if (!p) return;
+
+      const statusColors = { COMPLETED: 'var(--success)', PENDING: 'var(--warning)', FAILED: 'var(--danger)', REFUNDED: 'var(--info)' };
+      const statusColor = statusColors[p.paymentStatus] || 'var(--text-muted)';
+
+      document.getElementById('paymentDetailBody').innerHTML = `
+        <div class="payment-detail-grid">
+          <div class="payment-detail-item">
+            <div class="pd-label">🎬 Movie</div>
+            <div class="pd-value">${p.rental?.movie?.title || 'Unknown Movie'}</div>
+          </div>
+          <div class="payment-detail-item">
+            <div class="pd-label">💰 Amount</div>
+            <div class="pd-value" style="color:var(--accent-light);font-size:20px">${formatMoney(p.amount)}</div>
+          </div>
+          <div class="payment-detail-item">
+            <div class="pd-label">${methodIcons[p.paymentMethod] || '💳'} Payment Method</div>
+            <div class="pd-value">${getMethodLabel(p.paymentMethod)}</div>
+          </div>
+          <div class="payment-detail-item">
+            <div class="pd-label">📊 Status</div>
+            <div class="pd-value" style="color:${statusColor}">${(p.paymentStatus || '').replace(/_/g, ' ')}</div>
+          </div>
+          <div class="payment-detail-item">
+            <div class="pd-label">📅 Payment Date</div>
+            <div class="pd-value">${formatDate(p.paymentDate)}</div>
+          </div>
+          <div class="payment-detail-item">
+            <div class="pd-label">📋 Rental Date</div>
+            <div class="pd-value">${p.rental?.rentalDate || '—'}</div>
+          </div>
+          <div class="payment-detail-item full-width">
+            <div class="pd-label">🔗 Transaction ID</div>
+            <div class="pd-value" style="font-family:'Courier New',monospace;font-size:13px;letter-spacing:.5px">${p.transactionId || 'Not assigned'}</div>
+          </div>
+        </div>`;
+      openModal('paymentDetailModal');
+    }
+
+    async function loadReviewMovies() {
+      const select = document.getElementById('reviewMovieSelect');
+      if (!select) return;
+      try {
+        const rentals = await apiFetch('/customer/my-rentals');
+        const movies = Array.from(
+          new Map((rentals || [])
+            .map(r => r.movie)
+            .filter(m => m && m.id)
+            .map(m => [m.id, m])
+        ).values());
+        if (!movies.length) {
+          select.innerHTML = '<option value="">No rented movies available</option>';
+          return;
+        }
+        select.innerHTML = '<option value="">— Select Movie —</option>' + movies.map(m => `<option value="${m.id}">${m.title}</option>`).join('');
+      } catch (e) {
+        select.innerHTML = '<option value="">Unable to load rented movies</option>';
+      }
+    }
+
+    async function loadMyReviews() {
+      const tbody = document.getElementById('reviewTableBody');
+      const statReviews = document.getElementById('statReviews');
+      if (!tbody) return;
+      try {
+        const user = getCurrentUser();
+        const reviews = await apiFetch('/reviews');
+        const mine = (reviews || []).filter(r => r.user?.id === user?.id);
+        statReviews.textContent = mine.length;
+        if (!mine.length) {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:48px;color:var(--text-muted)">You have not written any reviews yet.</td></tr>';
+          return;
+        }
+        window._myReviews = mine;
+        tbody.innerHTML = mine.map((r, idx) => {
+          const stars = '⭐'.repeat(r.rating || 0) + '☆'.repeat(5 - (r.rating || 0));
+          return `<tr>
+            <td>${idx + 1}</td>
+            <td>${r.movie?.title || 'Unknown Movie'}</td>
+            <td>${stars}</td>
+            <td>${r.comment || '—'}</td>
+            <td>${formatDate(r.reviewDate)}</td>
+            <td class="action-btns">
+              <button class="btn btn-sm btn-secondary" onclick="editCustomerReview(${r.id})">✏️</button>
+              <button class="btn btn-sm btn-danger" onclick="deleteCustomerReview(${r.id})">🗑️</button>
+            </td>
+          </tr>`;
+        }).join('');
+      } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:48px;color:var(--text-muted)">Could not load your reviews.</td></tr>';
+      }
+    }
+
+    let _editingCustomerReviewId = null;
+
+    function resetReviewForm() {
+      _editingCustomerReviewId = null;
+      if (!document.getElementById('customerReviewForm')) return;
+      document.getElementById('customerReviewForm').reset();
+      document.getElementById('reviewModalTitle').textContent = 'Write Review';
+    }
+
+    function openReviewModal() {
+      resetReviewForm();
+      openModal('reviewModal');
+    }
+
+    function editCustomerReview(id) {
+      const review = (window._myReviews || []).find(r => r.id === id);
+      if (!review) return;
+      _editingCustomerReviewId = id;
+      document.getElementById('reviewModalTitle').textContent = 'Edit Review';
+      const form = document.getElementById('customerReviewForm');
+      if (!form) return;
+      form.querySelector('select[name="movieId"]').value = review.movie?.id || '';
+      form.querySelector('select[name="rating"]').value = review.rating || '5';
+      form.querySelector('textarea[name="comment"]').value = review.comment || '';
+      openModal('reviewModal');
+    }
+
+    async function saveCustomerReview() {
+      const form = document.getElementById('customerReviewForm');
+      if (!form) return;
+      const data = getFormData('customerReviewForm');
+      if (!data.movieId || !data.rating) { showToast('Movie and rating are required', 'error'); return; }
+      const user = getCurrentUser();
+      const body = {
+        user: { id: user.id },
+        movie: { id: parseInt(data.movieId) },
+        rating: parseInt(data.rating),
+        comment: data.comment || null
+      };
+      try {
+        if (_editingCustomerReviewId) {
+          await apiFetch(`/reviews/${_editingCustomerReviewId}`, { method: 'PUT', body: JSON.stringify(body) });
+          showToast('Review updated!');
+        } else {
+          await apiFetch('/reviews', { method: 'POST', body: JSON.stringify(body) });
+          showToast('Review saved!');
+        }
+        closeModal('reviewModal');
+        loadMyReviews();
+      } catch (e) {}
+    }
+
+    async function deleteCustomerReview(id) {
+      showConfirm('Delete this review?', async () => {
+        try {
+          await apiFetch(`/reviews/${id}`, { method: 'DELETE' });
+          showToast('Review removed');
+          loadMyReviews();
+        } catch (e) {}
+      });
+    }
+
+    async function loadWatchlist() {
+      const tbody = document.getElementById('watchlistTableBody');
+      const statWatchlist = document.getElementById('statWatchlist');
+      if (!tbody) return;
+      try {
+        const user = getCurrentUser();
+        const items = await apiFetch('/watchlist');
+        const mine = (items || []).filter(item => item.user?.id === user?.id);
+        statWatchlist.textContent = mine.length;
+        if (!mine.length) {
+          tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:48px;color:var(--text-muted)">Your watchlist is empty. Add movies from Browse Movies.</td></tr>';
+          return;
+        }
+        window._myWatchlist = mine;
+        tbody.innerHTML = mine.map((item, idx) => `<tr>
+            <td>${idx + 1}</td>
+            <td style="font-weight:600;color:var(--text-primary)">${item.movie?.title || 'Movie'}</td>
+            <td>${item.status || 'WANT_TO_WATCH'}</td>
+            <td>${formatDate(item.addedDate)}</td>
+            <td class="action-btns">
+              <button class="btn btn-sm btn-danger" onclick="removeWatchlistItem(${item.id})">🗑️ Remove</button>
+            </td>
+          </tr>`).join('');
+      } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-muted)">Could not load your watchlist.</td></tr>';
+      }
+    }
+
+    async function addToWatchlist(movieId) {
+      try {
+        const user = getCurrentUser();
+        if (!user) { showToast('Please login again to add to watchlist', 'error'); return; }
+        await apiFetch('/watchlist', {
+          method: 'POST',
+          body: JSON.stringify({ user: { id: user.id }, movie: { id: movieId }, status: 'WANT_TO_WATCH' })
+        });
+        showToast('Movie added to your watchlist!');
+        loadWatchlist();
+      } catch (e) {
+        showToast('Unable to add movie to watchlist', 'error');
+      }
+    }
+
+    async function removeWatchlistItem(id) {
+      showConfirm('Remove this movie from your watchlist?', async () => {
+        try {
+          await apiFetch(`/watchlist/${id}`, { method: 'DELETE' });
+          showToast('Removed from watchlist');
+          loadWatchlist();
+        } catch (e) {}
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadDashboard();
+      loadMovies();
+      loadRentals();
+      loadPayments();
+      loadReviewMovies();
+      loadMyReviews();
+      loadWatchlist();
+    });
+  </script>
+</body>
+</html>
